@@ -1,101 +1,48 @@
-using DG.Tweening;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+Ôªøusing UnityEngine;
+using UnityEngine.EventSystems;
+using System;
 
-public class HandController : MonoBehaviour
+public class HandController : MonoBehaviour, IBeginDragHandler, IEndDragHandler, IDragHandler
 {
-    public Transform holdPoint;
-    public Transform defaultPos;
+    [SerializeField] private Canvas canvas;
+    [SerializeField] private bool isDragging; // –¥–ª—è —Ç–µ—Å—Ç–æ–≤ drag and drop'–∞
+    [SerializeField] private bool isBusy;
+    [SerializeField] private bool canDrag;
 
-    private Camera cam;
-
-    private bool isDragging;
-    private bool canApply;
-
-    private GameObject currentItem;
-
+    public RectTransform handRect;
     public FaceZone faceZone;
+    public Action<bool> OnDrop; 
 
-    void Start()
+    void Awake() => handRect = GetComponent<RectTransform>();
+
+    public void SetBusy(bool value) => isBusy = value;
+
+    public void EnableDrag(bool value) => canDrag = value;
+
+    public bool IsOverFace()
     {
-        cam = Camera.main;
+        return faceZone != null && faceZone.IsInside;
     }
 
-    void Update()
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        if (isDragging)
-        {
-            Drag();
-        }
-    }
-
-    void Drag()
-    {
-        Vector3 pos = Input.mousePosition;
-        pos.z = 5f;
-
-        Vector3 world = cam.ScreenToWorldPoint(pos);
-        transform.position = world;
-    }
-
-    public void TakeItem(GameObject item)
-    {
-        if (currentItem != null) return;
-
-        currentItem = item;
-
-        item.transform.SetParent(holdPoint);
-        item.transform.DOLocalMove(Vector3.zero, 0.3f);
-        item.transform.DOLocalRotate(Vector3.zero, 0.3f);
-
-        transform.DOMoveY(0f, 0.3f); // ÛÓ‚ÂÌ¸ „Û‰Ë
-
-        canApply = false;
-        Invoke(nameof(EnableDrag), 0.3f);
-    }
-
-    void EnableDrag()
-    {
+        if (isBusy || !canDrag) return;
         isDragging = true;
     }
 
-    public void Release()
+    public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
+        bool success = IsOverFace();
 
-        if (faceZone.IsInside)
-        {
-            Apply();
-        }
-        else
-        {
-            ReturnItem();
-        }
+        Debug.Log("DROP: " + success);
+        OnDrop?.Invoke(success);
     }
 
-    void Apply()
+    public void OnDrag(PointerEventData eventData)
     {
-        canApply = true;
+        if (isBusy || !isDragging || !canDrag) return;
 
-        transform.DOScale(1.1f, 0.1f).SetLoops(2, LoopType.Yoyo);
-
-        currentItem.GetComponent<Item>().Apply();
-
-        Invoke(nameof(ReturnItem), 0.5f);
-    }
-
-    void ReturnItem()
-    {
-        isDragging = false;
-        canApply = false;
-
-        currentItem.transform.SetParent(null);
-
-        currentItem.transform.DOMove(currentItem.GetComponent<Item>().startPos, 0.4f);
-
-        transform.DOMove(defaultPos.position, 0.4f);
-
-        currentItem = null;
+        handRect.anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
 }

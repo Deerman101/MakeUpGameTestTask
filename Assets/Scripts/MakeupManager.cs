@@ -1,34 +1,53 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MakeupManager : MonoBehaviour
 {
-    public GameObject acneFace;
+    [Header("Face Parts")]
+    public Image acneFace;
+    public Image blushImg;
+    public Image eyeshadowImg;
+    public Image lipsImg;
 
-    public GameObject eyeshadow;
-    public GameObject lips;
-
-    public void ApplyCream()
+    private void Start()
     {
-        acneFace.SetActive(false);
+        ResetMakeup();
     }
 
-    public void ApplyEyeshadow()
+    public void ApplyCream() => acneFace?.gameObject.SetActive(false);
+
+    public void ApplyBlush(Sprite sprite)
     {
-        eyeshadow.SetActive(true);
+        if (blushImg != null)
+        {
+            blushImg.sprite = sprite;
+            blushImg.gameObject.SetActive(true);
+        }
     }
 
-    public void ApplyLipstick()
+    public void ApplyEyeshadow(Sprite sprite)
     {
-        lips.SetActive(true);
+        if (eyeshadowImg != null)
+        {
+            eyeshadowImg.sprite = sprite;
+            eyeshadowImg.gameObject.SetActive(true);
+        }
+    }
+
+    public void ApplyLipstick(Sprite sprite)
+    {
+        if (lipsImg != null)
+        {
+            lipsImg.sprite = sprite;
+            lipsImg.gameObject.SetActive(true);
+        }
     }
 
     public void ResetMakeup()
     {
-        acneFace.SetActive(true);
-
-        eyeshadow.SetActive(false);
-        lips.SetActive(false);
+        acneFace?.gameObject.SetActive(true);
+        blushImg?.gameObject.SetActive(false);
+        eyeshadowImg?.gameObject.SetActive(false);
+        lipsImg?.gameObject.SetActive(false);
     }
 }
